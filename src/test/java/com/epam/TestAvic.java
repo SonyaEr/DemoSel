@@ -1,14 +1,13 @@
 package com.epam;
 
-import org.openqa.selenium.By;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
+import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -23,6 +22,10 @@ import static org.testng.Assert.*;
 public class TestAvic {
     private WebDriver driver;
 
+    @BeforeTest
+    public void profileSetUp() {
+        System.setProperty("webdriver.chrome.driver", "src\\main\\resources\\chromedriver.exe");
+    }
     @BeforeMethod
     public void setUp() {
         driver = new ChromeDriver();
@@ -32,23 +35,25 @@ public class TestAvic {
 
     @Test(priority = 1)
     public void checkAddToOrder() {
-        driver.findElement(xpath("//input[@id='input_search']")).sendKeys("samsung");
-        driver.findElement(xpath("//button[@class='button-reset search-btn']")).click();
-        driver.findElement(xpath("(//a[@class='prod-cart__buy'])[1]")).click();
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(6));
+        driver.findElement(By.id("input_search")).sendKeys("samsung");
+        driver.findElement(By.cssSelector("button.button-reset.search-btn")).click();
+        driver.findElements(By.className("prod-cart__buy")).get(0).click();
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));
         wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("js_cart")));
-        driver.findElements(xpath("//*[@class='item']")).size();
-        driver.findElement(xpath("(//a[@class='btn-add'])[2]")).click();
-        driver.findElement(xpath("(//a[@class='name'])[2]")).getText();
-        assertNotNull(driver.findElement(xpath("//div[@class='cart-parent-limit']//span[contains(text(),name)]")));
+        driver.findElements(By.className("btn-add")).get(1).click();
+        driver.manage().timeouts().implicitlyWait(Duration.ofMillis(500));
+        String tittle = driver.findElement(By.xpath("((//a[@class='btn-add'])[1]/following::a)[2]")).getText();
+        WebElement el = driver.findElement(xpath("//div[@class='item']//span[contains(text(),'"+ tittle +"')]"));
+        assertTrue(el.isDisplayed());
+
     }
 
     @Test(priority = 2)
     public void checkAmountAfterAddQuantity() throws InterruptedException {
-        driver.findElement(xpath("//input[@id='input_search']")).sendKeys("samsung");
-        driver.findElement(xpath("//button[@class='button-reset search-btn']")).click();
-        driver.findElement(xpath("(//a[@class='prod-cart__buy'])[1]")).click();
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofMillis(300));
+        driver.findElement(By.id("input_search")).sendKeys("samsung");
+        driver.findElement(By.cssSelector("button.button-reset.search-btn")).click();
+        driver.findElements(By.className("prod-cart__buy")).get(1).click();
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofMillis(500));
         wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("js_cart")));
         WebDriverWait wait2 = new WebDriverWait(driver, Duration.ofMillis(800));
         wait2.until(ExpectedConditions.elementToBeClickable(By.xpath("(//span[contains(@class,'plus')])[1]")));
@@ -71,16 +76,16 @@ public class TestAvic {
             throw new IllegalArgumentException();
         }
         int number = Integer.parseInt(part2[0]);
-        assertTrue(number == number_new);
+        assertEquals(number_new, number);
     }
 
     @Test(priority = 3)
     public void checkCartSignIn() {
         driver.findElement(xpath("//div[contains(@class,'header-bottom__cart')]/parent::a")).click();
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(6));
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));
         wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("js_cart")));
         driver.findElement(xpath("//div[@id='js_cart']/descendant::a[contains(@href,'sign-in')]")).click();
-        assertEquals(driver.findElement(xpath("//div[@class='page-title']")).getText(), "Вхід та реєстрація");
+        assertEquals(driver.findElement(By.className("page-title")).getText(), "Вхід та реєстрація");
     }
 
     @Test(priority = 4)
@@ -101,10 +106,10 @@ public class TestAvic {
                 actions.moveToElement(sub_menu.get(j)).perform();
             }
         }
-        Set<String> set = new LinkedHashSet<String>(ref);
-        String url = "";
-        HttpURLConnection huc = null;
-        int respCode = 200;
+        Set<String> set = new LinkedHashSet<>(ref);
+        String url;
+        HttpURLConnection huc;
+        int respCode;
 
         Iterator<String> it = set.iterator();
         ArrayList<String> invalid = new ArrayList<>();
@@ -126,7 +131,7 @@ public class TestAvic {
                 invalid.add(url);
             }
         }
-        assertTrue(invalid.size()==0, invalid.toString());
+        assertEquals(invalid.size(), 0, invalid.toString());
     }
 
     @AfterMethod
