@@ -4,6 +4,8 @@ import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.FluentWait;
+import org.openqa.selenium.support.ui.Wait;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -15,6 +17,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.time.Duration;
 import java.util.*;
+import java.util.NoSuchElementException;
+import java.util.function.Function;
 
 import static org.openqa.selenium.By.xpath;
 import static org.testng.Assert.*;
@@ -49,7 +53,7 @@ public class TestAvic {
     }
 
     @Test(priority = 2)
-    public void checkAmountAfterAddQuantity() throws InterruptedException {
+    public void checkAmountAfterAddQuantity()  {
         driver.findElement(By.id("input_search")).sendKeys("samsung");
         driver.findElement(By.cssSelector("button.button-reset.search-btn")).click();
         driver.findElements(By.className("prod-cart__buy")).get(1).click();
@@ -69,7 +73,17 @@ public class TestAvic {
             int count = Integer.parseInt(driver.findElement(xpath("(//input[@class='js-changeAmount count'])[" + i + "+1]")).getAttribute("value"));
             number_new = total_h * count;
         }
-        Thread.sleep(1000);
+        String total_price_old = driver.findElement(xpath("//div[contains(@class,'item-total')]/span[contains(@class,'prise')]")).getText();
+
+        Wait<WebDriver> wait3 = new FluentWait<>(driver).withTimeout(Duration.ofSeconds(3)).pollingEvery(Duration.ofSeconds(1)).ignoring(NoSuchElementException.class);
+        Function<WebDriver, Boolean> function = i -> {
+           if(!Objects.equals(total_price_old, driver.findElement(xpath("//div[contains(@class,'item-total')]/span[contains(@class,'prise')]")).getText()))
+           {
+               return true;
+           }
+            return false;
+        };
+        wait3.until(function);
         String total_price = driver.findElement(xpath("//div[contains(@class,'item-total')]/span[contains(@class,'prise')]")).getText();
         String[] part2 = total_price.split(" ");
         if (part2.length != 2) {
