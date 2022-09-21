@@ -4,18 +4,13 @@ import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.*;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.BeforeTest;
-import org.testng.annotations.Test;
+import org.testng.annotations.*;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.time.Duration;
 import java.util.*;
-import java.util.NoSuchElementException;
-import java.util.function.Function;
 
 import static org.openqa.selenium.By.xpath;
 import static org.testng.Assert.*;
@@ -23,7 +18,7 @@ import static org.testng.Assert.*;
 public class TestAvic {
     private WebDriver driver;
 
-    @BeforeTest
+    @BeforeClass
     public void profileSetUp() {
         System.setProperty("webdriver.chrome.driver", "src\\main\\resources\\chromedriver.exe");
     }
@@ -40,7 +35,7 @@ public class TestAvic {
         driver.findElement(By.id("input_search")).sendKeys("samsung");
         driver.findElement(By.cssSelector("button.button-reset.search-btn")).click();
         driver.findElements(By.className("prod-cart__buy")).get(0).click();
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(2));
         wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("js_cart")));
         driver.findElements(By.className("btn-add")).get(1).click();
         wait.until(ExpectedConditions.presenceOfElementLocated(xpath("(//div[@class='item'])[2]")));
@@ -55,42 +50,42 @@ public class TestAvic {
         driver.findElement(By.id("input_search")).sendKeys("samsung");
         driver.findElement(By.cssSelector("button.button-reset.search-btn")).click();
         driver.findElements(By.className("prod-cart__buy")).get(1).click();
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofMillis(600));
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(2));
         wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("js_cart")));
-        String total_price_old = driver.findElement(xpath("//div[contains(@class,'item-total')]/span[contains(@class,'prise')]")).getText();
+        String totalPriceOld = driver.findElement(xpath("//div[contains(@class,'item-total')]/span[contains(@class,'prise')]")).getText();
         driver.findElements(By.className("btn-add")).get(1).click();
         wait.until(ExpectedConditions.elementToBeClickable(xpath("(//span[contains(@class,'plus')])[1]")));
         driver.findElement(xpath("(//span[contains(@class,'plus')])[1]")).click();
-        WebElement m = (new WebDriverWait(driver, Duration.ofSeconds(8))).until((ExpectedCondition<WebElement>) webDriver -> {
-            if (!Objects.equals(total_price_old, driver.findElement(xpath("//div[contains(@class,'item-total')]/span[contains(@class,'prise')]")).getText())) {
+        (new WebDriverWait(driver, Duration.ofSeconds(8))).until((ExpectedCondition<WebElement>) webDriver -> {
+            if (!Objects.equals(totalPriceOld, driver.findElement(xpath("//div[contains(@class,'item-total')]/span[contains(@class,'prise')]")).getText())) {
                 return driver.findElement(xpath("//div[contains(@class,'item-total')]/span[contains(@class,'prise')]"));
             }
             return null;
         });
         List<WebElement> prices = driver.findElements(xpath("//div[contains(@class,'total-h')]/span[contains(@class,'prise')]"));
-        int number_new = 0;
+        int numberNew = 0;
         for (int i = 0; i < prices.size(); i++) {
             String[] part = prices.get(i).getText().split(" ");
             if (part.length != 2) {
                 throw new IllegalArgumentException();
             }
-            int total_h = Integer.parseInt(part[0]);
+            int totalH = Integer.parseInt(part[0]);
             int count = Integer.parseInt(driver.findElement(xpath("(//input[@class='js-changeAmount count'])[" + i + "+1]")).getAttribute("value"));
-            number_new = number_new+total_h * count;
+            numberNew = numberNew+totalH * count;
         }
-       String total_price = driver.findElement(xpath("//div[contains(@class,'item-total')]/span[contains(@class,'prise')]")).getText();
-        String[] part2 = total_price.split(" ");
+       String totalPrice = driver.findElement(xpath("//div[contains(@class,'item-total')]/span[contains(@class,'prise')]")).getText();
+        String[] part2 = totalPrice.split(" ");
         if (part2.length != 2) {
             throw new IllegalArgumentException();
         }
         int number = Integer.parseInt(part2[0]);
-        assertEquals(number_new, number);
+        assertEquals(numberNew, number);
     }
 
     @Test(priority = 3)
     public void checkCartSignIn() {
         driver.findElement(xpath("//div[contains(@class,'header-bottom__cart')]/parent::a")).click();
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(2));
         wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("js_cart")));
         driver.findElement(xpath("//div[@id='js_cart']/descendant::a[contains(@href,'sign-in')]")).click();
         assertEquals(driver.findElement(By.className("page-title")).getText(), "Вхід та реєстрація");
@@ -104,14 +99,14 @@ public class TestAvic {
         for (int i = 0; i < menu.size(); i++) {
             actions.moveToElement(menu.get(i)).perform();
             ref.add(driver.findElement(By.xpath("(//div[@class='menu-lvl first-level']/ul/li[@class='parent js_sidebar-item']/a)[" + i + "+1]")).getAttribute("href"));
-            List<WebElement> sub_menu = driver.findElements(xpath("(//div[@class='menu-lvl second-level next-level js_next-level'])[" + i + "+1]/ul/li[@class='parent js_sidebar-item']"));
-            for (int j = 0; j < sub_menu.size(); j++) {
+            List<WebElement> subMenu = driver.findElements(xpath("(//div[@class='menu-lvl second-level next-level js_next-level'])[" + i + "+1]/ul/li[@class='parent js_sidebar-item']"));
+            for (int j = 0; j < subMenu.size(); j++) {
                 ref.add(driver.findElement(By.xpath("((//div[@class='menu-lvl second-level next-level js_next-level'])[" + i + "+1]/ul/li[@class='parent js_sidebar-item']/a)[" + j + "+1]")).getAttribute("href"));
-                List<WebElement> sub2_menu = driver.findElements(xpath("((//ul[@class='sidebar-list'])[" + i + "+1]/li[@class='parent js_sidebar-item'])[" + j + "+1]//li[@class='single-hover-block']/a"));
-                for (int k = 0; k < sub2_menu.size(); k++) {
-                    ref.add(sub2_menu.get(k).getAttribute("href"));
+                List<WebElement> sub2Menu = driver.findElements(xpath("((//ul[@class='sidebar-list'])[" + i + "+1]/li[@class='parent js_sidebar-item'])[" + j + "+1]//li[@class='single-hover-block']/a"));
+                for (int k = 0; k < sub2Menu.size(); k++) {
+                    ref.add(sub2Menu.get(k).getAttribute("href"));
                 }
-                actions.moveToElement(sub_menu.get(j)).perform();
+                actions.moveToElement(subMenu.get(j)).perform();
             }
         }
         Set<String> set = new LinkedHashSet<>(ref);
