@@ -135,7 +135,6 @@ public class TestAvic {
                     invalid.add(url);
                 }
             } catch (IOException e) {
-                // TODO Auto-generated catch block
                 invalid.add(url);
             }
         }
